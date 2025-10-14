@@ -1,0 +1,27 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: ur5e_model
+    relative_path: urdf/ur5e_robot.urdf
+  srdf:
+    relative_path: config/ur5e_robot.srdf
+  package_settings:
+    author_name: Marat Giniyatov
+    author_email: maratmuzhik@gmail.com
+    generated_timestamp: 1753099773
+  control_xacro:
+    command:
+      - position
+      - velocity
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+      - velocity
+    state:
+      - position
+      - velocity

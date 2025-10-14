@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="kuka_kr3r540" >
+  <xacro:include filename="$(find kuka_kr3_model)/urdf/test_macro.xacro"/>
+  <xacro:kuka_kr3r540 prefix=""/>
+
+
+  <xacro:include filename="$(find robotiq_2f_140_gripper_visualization)/urdf/robotiq_arg2f.xacro"/>
+  <xacro:include filename="$(find robotiq_2f_140_gripper_visualization)/urdf/robotiq_arg2f_140_model.xacro"/>
+
+
+  <joint name="wrist_3_to_gripper_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/> <!-- Adjust as needed for correct positioning -->
+    <parent link="flange"/>
+    <child link="robotiq_arg2f_base_link"/> <!-- Ensure this matches the actual base link name -->
+  </joint>
+
+</robot>

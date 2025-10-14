@@ -1,0 +1,22 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/marat/exchange_prj_ws/install/turtlesim/lib/python3.12/site-packages",
+        "/home/marat/exchange_prj_ws/install/moveit_task_constructor_core/lib/python3.12/site-packages",
+        "/home/marat/exchange_prj_ws/install/robot_movement/lib/python3.12/site-packages",
+        "/home/marat/exchange_prj_ws/install/moveit_task_constructor_msgs/lib/python3.12/site-packages",
+        "/home/marat/exchange_prj_ws/install/moveit_py/lib/python3.12/site-packages",
+        "/home/marat/exchange_prj_ws/install/moveit_msgs/lib/python3.12/site-packages",
+        "/home/marat/exchange_prj_ws/install/moveit_configs_utils/lib/python3.12/site-packages",
+        "/opt/ros/jazzy/lib/python3.12/site-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/marat/exchange_prj_ws/install/turtlesim/lib/python3.12/site-packages",
+        "/home/marat/exchange_prj_ws/install/moveit_task_constructor_core/lib/python3.12/site-packages",
+        "/home/marat/exchange_prj_ws/install/robot_movement/lib/python3.12/site-packages",
+        "/home/marat/exchange_prj_ws/install/moveit_task_constructor_msgs/lib/python3.12/site-packages",
+        "/home/marat/exchange_prj_ws/install/moveit_py/lib/python3.12/site-packages",
+        "/home/marat/exchange_prj_ws/install/moveit_msgs/lib/python3.12/site-packages",
+        "/home/marat/exchange_prj_ws/install/moveit_configs_utils/lib/python3.12/site-packages",
+        "/opt/ros/jazzy/lib/python3.12/site-packages"
+    ]
+}
