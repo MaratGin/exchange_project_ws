@@ -1,16 +1,22 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur5e">
   <!-- robot name parameter -->
-  <xacro:arg name="name" default="ur"/>
+  <xacro:arg name="name" default="ur5e"/>
   <!-- import main macro -->
   <xacro:include filename="$(find ur5e_model_pkg)/urdf/ur_macro.xacro"/>
   <xacro:include filename="$(find ur5e_model_pkg)/urdf/ur5e_ros2_control.xacro" />
+  <xacro:include filename="$(find onrobot_2fg7_gripper_description)/urdf/onrobot_2fg7.xacro"/>
+   <xacro:onrobot_2fg7_gripper prefix="gripper_" finger_configuration="outwards"/>
+
+    <!-- <xacro:include filename="$(find ur5e_model_pkg)/urdf/camera.xacro" /> -->
+
 
   <!-- possible 'ur_type' values: ur3, ur5, ur10, ur3e, ur5e, ur7e, ur10e, ur12e, ur16e, ur8long, ur15, ur18, ur20, ur30 -->
   <!-- the default value should raise an error in case this was called without defining the type -->
-  <xacro:arg name="ur_type" default="ur5x"/>
+  <xacro:arg name="ur_type" default="ur5e"/>
 
   <!-- parameters -->
+   <xacro:arg name="ros_namespace" default="" />
   <xacro:arg name="tf_prefix" default="" />
   <xacro:arg name="joint_limit_params" default="$(find ur_description)/config/$(arg ur_type)/joint_limits.yaml"/>
   <xacro:arg name="kinematics_params" default="$(find ur_description)/config/$(arg ur_type)/default_kinematics.yaml"/>
@@ -53,10 +59,6 @@
     <origin xyz="0 0 0" rpy="0 0 0" />          <!-- position robot in the world -->
   </xacro:ur_robot>
 
-
-    <!-- create link fixed to the "world" -->
-  <link name="world" />
-
   <link name="ground_plane">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -81,6 +83,14 @@
     <child link="ground_plane"/>
   </joint>
 
+  <joint name="gripper_joint" type="fixed">
+  <parent link="tool0"/>
+  <child link="gripper_base_link"/>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+
+
 
     <gazebo reference="world">
   </gazebo>
@@ -97,7 +107,8 @@
   <xacro:ur_ros2_control
     name="$(arg name)"
     tf_prefix="$(arg tf_prefix)"
-    mock_sensor_commands="$(arg mock_sensor_commands)"
     initial_positions="${xacro.load_yaml(initial_positions_file)}"
   />
 </robot>
+
+<!-- mock_sensor_commands="$(arg mock_sensor_commands)" -->

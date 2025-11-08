@@ -26,7 +26,7 @@
         <collision>
             <geometry>
                 <!-- <mesh filename="package://ur_yt_sim/meshes/sensors/camera/kinetic.dae"/> -->
-                <mesh filename="package://ur5e_model_pkg/meshes/sensors/camera/kinetic.stl"/>
+                <mesh filename="package://ur5e_model_pkg/meshes/sensors/camera/kinetic.dae"/>
             </geometry>
         </collision>
     </link>
