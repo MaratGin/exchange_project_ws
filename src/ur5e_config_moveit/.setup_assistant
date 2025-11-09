@@ -6,8 +6,8 @@ moveit_setup_assistant_config:
     relative_path: config/ur5e.srdf
   package_settings:
     author_name: MaratGin
-    author_email: marat21129999@gmail.com
-    generated_timestamp: 1762340578
+    author_email: maratmuzhk@gmail.com
+    generated_timestamp: 1762638944
   control_xacro:
     command:
       - position

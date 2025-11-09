@@ -1,177 +1,251 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, ExecuteProcess, RegisterEventHandler
-from launch_ros.actions import Node
-from launch.substitutions import LaunchConfiguration, Command
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.event_handlers import OnProcessStart
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    OpaqueFunction,
+    RegisterEventHandler,
+)
+from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnProcessExit
-from launch.events import TimerEvent
-from launch.actions import TimerAction
-from ament_index_python.packages import get_package_share_directory
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import (
+    Command,
+    FindExecutable,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+    IfElseSubstitution,
+)
+from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 import os
-import xacro
+from ament_index_python.packages import get_package_share_directory
 from launch.event_handlers import OnProcessStart
-from moveit_configs_utils import MoveItConfigsBuilder
 
 def generate_launch_description():
     ld = LaunchDescription()
 
+    namespace = LaunchConfiguration('namespace')
+    ur_type = LaunchConfiguration("ur_type")
+    safety_limits = LaunchConfiguration("safety_limits")
+    safety_pos_margin = LaunchConfiguration("safety_pos_margin")
+    safety_k_position = LaunchConfiguration("safety_k_position")
+    # General arguments
+    controllers_file = LaunchConfiguration("controllers_file")
+    tf_prefix = LaunchConfiguration("tf_prefix")
+    activate_joint_controller = LaunchConfiguration("activate_joint_controller")
+    initial_joint_controller = LaunchConfiguration("initial_joint_controller")
+    description_file = LaunchConfiguration("description_file")
+    launch_rviz = LaunchConfiguration("launch_rviz")
+    rviz_config_file = LaunchConfiguration("rviz_config_file")
+    gazebo_gui = LaunchConfiguration("gazebo_gui")
+    world_file = LaunchConfiguration("world_file")
+
+    robot_description_content = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name="xacro")]),
+            " ",
+            description_file,
+            " ",
+            "safety_limits:=",
+            safety_limits,
+            " ",
+            "safety_pos_margin:=",
+            safety_pos_margin,
+            " ",
+            "safety_k_position:=",
+            safety_k_position,
+            " ",
+            "name:=",
+            "ur",
+            " ",
+            "ur_type:=",
+            ur_type,
+            " ",
+            "tf_prefix:=",
+            tf_prefix,
+            " ",
+            "simulation_controllers:=",
+            controllers_file,
+        ]
+    )
+    robot_description = {"robot_description": robot_description_content}
+    my_pkg = get_package_share_directory('ur5e_model_pkg')
+    gz_sim_launch_path = os.path.join(my_pkg, 'launch', 'start_gz_sim.launch.py')
+
+
+    # Running another launch file start_gz_sim.launch.py
+    gz_sim = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(gz_sim_launch_path),
+        launch_arguments={
+            'world_name': 'start_world.sdf',
+        }.items()
+    )
 
     joint_controllers_file = os.path.join(
         get_package_share_directory('ur5e_model_pkg'), 'config', 'ur5_controllers.yaml'
     )
-    gazebo_launch_file = os.path.join(
-        get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py'
-    )
 
-    moveit_config = (
-        MoveItConfigsBuilder("custom_robot", package_name="ur5e_camera_moveit_config")
-        .robot_description(file_path="config/ur.urdf.xacro")
-        .robot_description_semantic(file_path="config/ur.srdf")
-        .trajectory_execution(file_path="config/moveit_controllers.yaml")
-        .robot_description_kinematics(file_path="config/kinematics.yaml")
-        .planning_scene_monitor(
-            publish_robot_description= True, publish_robot_description_semantic=True, publish_planning_scene=True
-        )
-        .planning_pipelines(
-            pipelines=["ompl", "chomp", "pilz_industrial_motion_planner"]
-        )
-        .to_moveit_configs()
-    )
 
+    declare_bridge_file = DeclareLaunchArgument(
+		name='bridge_file_path',
+		default_value=os.path.join(get_package_share_directory('ur5e_model_pkg'), 'config', 'bridge.yaml'),
+		description='Bridge configuration'
+	)
+
+    declare_controllers_file = DeclareLaunchArgument(
+            "controllers_file",
+            default_value=PathJoinSubstitution(
+                [FindPackageShare("ur5e_model_pkg"), "config", "ur5e_controllers.yaml"]
+            ),
+            description="Absolute path to YAML file with the controllers configuration.",
+        )
+
+
+    declare_tf_prefixes = DeclareLaunchArgument(
+            "tf_prefix",
+            default_value='ur5e_',
+            description="Prefix of the joint names, useful for "
+            "multi-robot setup. If changed than also joint names in the controllers' configuration "
+            "have to be updated.",
+        )
+
+    declate_ur_type = DeclareLaunchArgument(
+            "ur_type",
+            description="Type/series of used UR robot.",
+            default_value="ur5e",
+        )
+
+    declare_safety_pos_margin =  DeclareLaunchArgument(
+            "safety_pos_margin",
+            default_value="0.15",
+            description="The margin to lower and upper limits in the safety controller.",
+        )
+    declare_safety_k_position = DeclareLaunchArgument(
+            "safety_k_position",
+            default_value="20",
+            description="k-position factor in the safety controller.",
+        )
+
+    declare_discription_file = DeclareLaunchArgument(
+            name="description_file",
+            default_value=PathJoinSubstitution(
+                [FindPackageShare("ur5e_model_pkg"), "urdf", "ur5e_camera.urdf.xacro"]
+            ),
+            description="URDF/XACRO description file (absolute path) with the robot.",
+        )
+    
+    declare_safety_limits = DeclareLaunchArgument(
+            "safety_limits",
+            default_value="true",
+            description="Enables the safety limits controller if true.",
+        )
+
+    declare_namespace_cmd = DeclareLaunchArgument(
+		name='namespace',
+		default_value='ur5e',
+		description='Top-level namespace'
+	)
+
+    declare_use_sim_time_cmd = DeclareLaunchArgument(
+		name='use_sim_time',
+		default_value='true',
+		description='Use simulation (Gazebo) clock if true'
+	)
 
     x_arg = DeclareLaunchArgument('x', default_value='0', description='X position of the robot')
     y_arg = DeclareLaunchArgument('y', default_value='0', description='Y position of the robot')
     z_arg = DeclareLaunchArgument('z', default_value='0', description='Z position of the robot')
 
-    # Include Gazebo launch file
-    gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(gazebo_launch_file),
-        launch_arguments={
-            'use_sim_time': 'true',
-            'debug': 'false',
-            'gui': 'true',
-            'paused': 'true',
-            #'world' : world_file
-        }.items()
-    )
-
-    rviz_config_path = os.path.join(
-        get_package_share_directory("ur5e_camera_moveit_config"),
-        "config",
-        "moveit.rviz",
-    )
-
-    rviz_node = Node(
-        package="rviz2",
-        executable="rviz2",
-        name="rviz2",
-        output="screen",
-        arguments=["-d", rviz_config_path],
-        parameters=[
-            moveit_config.robot_description,
-            moveit_config.robot_description_semantic,
-            moveit_config.planning_pipelines,
-            moveit_config.robot_description_kinematics,
-        ],
-    )
 
     # spawn the robot
+    print("SPAWN THE ROBOT")
     spawn_the_robot = Node(
-        package='gazebo_ros',
-        executable='spawn_entity.py',
+        package='ros_gz_sim',
+        executable='create',
         arguments=[
-            '-entity', 'cobot',
-            '-topic', 'robot_description',
-            '-x', LaunchConfiguration('x'),
-            '-y', LaunchConfiguration('y'),
-            '-z', LaunchConfiguration('z')
+            '-topic','/robot_description',
+            '-name', 'ur',
+            '-x', '0.5',  # Position at table center
+            '-y', '0.0',
+            '-z', '0.4',  # Position at table height
+            '-R', '0.0',
+            '-P', '0.0',
+            '-Y', '0.0',
+            '-allow_renaming', 'true'
         ],
-        output='screen',
-    )
-
-    # controller manager
-    controller_manager_node = Node(
-        package='controller_manager',
-        executable='ros2_control_node',
-        parameters=[moveit_config.robot_description, joint_controllers_file],
-        output='screen',
-        remappings=[
-            ("~/robot_description", "/robot_description"),
-        ],
-    )
-
-    # Robot state publisher
-    robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        parameters=[moveit_config.robot_description],
         output='screen'
     )
 
-    joint_state_broadcaster_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
-        output="screen",
+    # [namespace, '/robot_description']
+
+    # Robot State Publisher
+    rsp_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
+        parameters=[robot_description],
+        output='screen'
     )
 
-    arm_trajectory_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["joint_trajectory_controller", "--controller-manager", "/controller_manager"],
-        output="screen",
-    )
-
-    use_sim_time={"use_sim_time": True}
-    config_dict = moveit_config.to_dict()
-    config_dict.update(use_sim_time)
-
-    move_group_node = Node(
-        package="moveit_ros_move_group",
-        executable="move_group",
-        output="screen",
-        parameters=[config_dict],
-        arguments=["--ros-args", "--log-level", "info"],
-    )
+    controller_manager_node = Node(
+    package='controller_manager',
+    executable='ros2_control_node',
+    parameters=[
+        joint_controllers_file,
+        {'robot_description': LaunchConfiguration('description_file')}
+    ],)
 
 
-    delay_joint_state_broadcaster = RegisterEventHandler(
-        OnProcessStart(
-            target_action=controller_manager_node,
-            on_start=[joint_state_broadcaster_spawner],
-        )
-    )
+    # joint_state_broadcaster_spawner = Node(
+    #     package="controller_manager",
+    #     executable="spawner",
+    #     arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+    # )
 
-    delay_arm_controller = RegisterEventHandler(
-        OnProcessStart(
-            target_action=joint_state_broadcaster_spawner,
-            on_start=[arm_trajectory_controller_spawner],
-        )
-    )
+    # arm_trajectory_controller_spawner = Node(
+    #     package="controller_manager",
+    #     executable="spawner",
+    #     arguments=["joint_trajectory_controller", "--controller-manager", "/controller_manager"],
+    #     output="screen",
+    # )
 
-    delay_rviz_node = RegisterEventHandler(
-        OnProcessStart(
-            target_action=robot_state_publisher,
-            on_start=[rviz_node],
-        )
-    )
+    # delay_joint_state_broadcaster = RegisterEventHandler(
+    #     OnProcessStart(
+    #         target_action=controller_manager_node,
+    #         on_start=[joint_state_broadcaster_spawner],
+    #     )
+    # )
 
+    # delay_arm_controller = RegisterEventHandler(
+    #     OnProcessStart(
+    #         target_action=joint_state_broadcaster_spawner,
+    #         on_start=[arm_trajectory_controller_spawner],
+    #     )
+    # )
+
+
+
+        		#rema#ppings=[('/tf','tf'),('/tf_static','tf_static')],      remappings=[('/robot_description', [namespace, '/robot_description'])]
 
     # Launch Description
+    ld.add_action(declare_controllers_file)
+    ld.add_action(declare_tf_prefixes)
+    ld.add_action(declate_ur_type)
+    ld.add_action(declare_safety_pos_margin)
+    ld.add_action(declare_safety_k_position)
+    ld.add_action(declare_safety_limits)
+    ld.add_action(declare_discription_file)
+    ld.add_action(declare_namespace_cmd)
+    ld.add_action(declare_use_sim_time_cmd)
+    ld.add_action(gz_sim)
     ld.add_action(x_arg)
     ld.add_action(y_arg)
     ld.add_action(z_arg)
-    ld.add_action(gazebo)
-    ld.add_action(controller_manager_node)  # has to be loaded first
+
     ld.add_action(spawn_the_robot)
-    ld.add_action(robot_state_publisher)
-    ld.add_action(move_group_node)
-    # delay of the controllers
-    ld.add_action(delay_joint_state_broadcaster)
-    ld.add_action(delay_arm_controller)
-    ld.add_action(delay_rviz_node)
-
-
+    ld.add_action(rsp_node)
+    ld.add_action(controller_manager_node)
+    # ld.add_action(delay_joint_state_broadcaster)
+    # ld.add_action(delay_arm_controller)
 
     return ld

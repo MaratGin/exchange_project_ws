@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>ur_final_moveit_config</name>
+  <name>ur5e_config_moveit</name>
   <version>0.3.0</version>
   <description>
      An automatically generated package with all the configuration and launch files for using the ur5e with the MoveIt Motion Planning Framework
   </description>
-  <maintainer email="marat21129999@gmail.com">MaratGin</maintainer>
+  <maintainer email="maratmuzhk@gmail.com">MaratGin</maintainer>
 
   <license>BSD-3-Clause</license>
 
@@ -14,7 +14,7 @@
   <url type="bugtracker">https://github.com/moveit/moveit2/issues</url>
   <url type="repository">https://github.com/moveit/moveit2</url>
 
-  <author email="marat21129999@gmail.com">MaratGin</author>
+  <author email="maratmuzhk@gmail.com">MaratGin</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

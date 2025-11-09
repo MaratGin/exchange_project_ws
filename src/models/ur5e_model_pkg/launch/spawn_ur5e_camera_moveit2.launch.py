@@ -70,8 +70,7 @@ def launch_setup(context, *args, **kwargs):
     gazebo_gui = LaunchConfiguration("gazebo_gui")
     world_file = LaunchConfiguration("world_file")
     joint_controllers_file = os.path.join(
-        get_package_share_directory('ur5e_model_pkg'), 'config', 'ur5e_controllers.yaml'
-    )
+        get_package_share_directory('ur5e_model_pkg'), 'config', 'ur5e_controllers.yaml')
 
     robot_description_content = Command(
         [
@@ -119,7 +118,7 @@ def launch_setup(context, *args, **kwargs):
 	# )
 
     moveit_config = (
-        MoveItConfigsBuilder("ur5e_robot", package_name="ur_final_moveit_config")
+        MoveItConfigsBuilder("ur5e_robot", package_name="ur_moveit_config")
         .robot_description(file_path="config/ur5e.urdf.xacro")
         .robot_description_semantic(file_path="config/ur5e.srdf")
         .trajectory_execution(file_path="config/moveit_controllers.yaml")
@@ -394,7 +393,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "world_file",
-            default_value="empty.sdf",
+            default_value="start_world.sdf",
             description="Gazebo world file (absolute path or filename from the gazebosim worlds collection) containing a custom world.",
         )
     )
